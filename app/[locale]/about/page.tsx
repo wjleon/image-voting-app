@@ -15,7 +15,7 @@ export default function AboutPage() {
                 {/* Profile Image */}
                 <div className="relative w-48 h-48 rounded-full overflow-hidden border-4 border-zinc-800 shadow-2xl">
                     <Image
-                        src="/images/claude_2_asian_woman_character/Midjourney/claude_2_asian_woman_character-Midjourney-1.png"
+                        src="/images/wilmer_leon.jpg"
                         alt="Wilmer Leon"
                         fill
                         className="object-cover"
