@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
 
         for (const modelName in imagesByModel) {
             // Sort images for this model by impressionCount ASC
-            const sortedImages = imagesByModel[modelName].sort((a, b) => a.impressionCount - b.impressionCount);
+            const sortedImages = imagesByModel[modelName].sort((a: { impressionCount: number }, b: { impressionCount: number }) => a.impressionCount - b.impressionCount);
             // Pick the best one (least viewed)
             modelCandidates.push({
                 modelName,
