@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Prompt {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  text      String
+  images    Image[]
+  votes     Vote[]
+  impressions ImageImpression[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("prompts")
+}
+
+model Image {
+  id              String   @id @default(uuid())
+  promptId        String   @map("prompt_id")
+  modelName       String   @map("model_name")
+  imagePath       String   @map("image_path")
+  impressionCount Int      @default(0) @map("impression_count")
+  
+  prompt          Prompt   @relation(fields: [promptId], references: [id])
+  impressions     ImageImpression[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("images")
+}
+
+model Vote {
+  id           String   @id @default(uuid())
+  promptId     String   @map("prompt_id")
+  chosenModel  String   @map("chosen_model")
+  shownModels  String   @map("shown_models") // JSON string of model names
+  
+  // Metadata
+  userIp       String?  @map("user_ip")
+  userAgent    String?  @map("user_agent")
+  browser      String?
+  os           String?
+  device       String?
+  country      String?
+  region       String?
+  sessionId    String?  @map("session_id")
+  
+  timestamp    DateTime @default(now())
+  
+  prompt       Prompt   @relation(fields: [promptId], references: [id])
+
+  @@map("votes")
+}
+
+model ImageImpression {
+  id        String   @id @default(uuid())
+  promptId  String   @map("prompt_id")
+  imageId   String   @map("image_id")
+  timestamp DateTime @default(now())
+  
+  prompt    Prompt   @relation(fields: [promptId], references: [id])
+  image     Image    @relation(fields: [imageId], references: [id])
+
+  @@map("image_impressions")
+}
