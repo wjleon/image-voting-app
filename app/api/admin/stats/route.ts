@@ -14,7 +14,7 @@ export async function GET() {
         const images = await prisma.image.findMany({
             select: { impressionCount: true, modelName: true },
         });
-        const totalImpressions = images.reduce((sum: number, img) => sum + img.impressionCount, 0);
+        const totalImpressions = images.reduce((sum: number, img: { impressionCount: number }) => sum + img.impressionCount, 0);
 
         // 3. Stats per Model
         // We need to aggregate votes by model
