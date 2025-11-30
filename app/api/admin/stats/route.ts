@@ -33,7 +33,7 @@ export async function GET() {
 
         // Combine data
         const modelStats = Object.keys(impressionsByModel).map(modelName => {
-            const voteCount = votesByModel.find(v => v.chosenModel === modelName)?._count.chosenModel || 0;
+            const voteCount = votesByModel.find((v: { chosenModel: string }) => v.chosenModel === modelName)?._count.chosenModel || 0;
             const impressionCount = impressionsByModel[modelName] || 0;
 
             return {
