@@ -5,5 +5,16 @@
     "retry": "Retry",
     "failed": "Failed to load prompt.",
     "footer": "AI Model Comparison • 2025"
+  },
+  "Navigation": {
+    "home": "Home",
+    "about": "About"
+  },
+  "About": {
+    "title": "About Me",
+    "name": "Wilmer Leon",
+    "bio": "I write about AI and build cool stuff.",
+    "blog": "Read my blog on Medium",
+    "linkedin": "Connect on LinkedIn"
   }
 }

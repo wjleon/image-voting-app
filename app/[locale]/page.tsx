@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { Loader2, CheckCircle } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { useTranslations } from 'next-intl';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 // Types
 interface Candidate {
@@ -106,7 +105,6 @@ export default function VotingPage({ params }: { params: Promise<{ locale: strin
 
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center py-8 px-4 relative">
-      <LanguageSwitcher />
 
       <header className="mb-8 text-center max-w-5xl">
         <h1 className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">

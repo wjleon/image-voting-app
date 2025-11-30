@@ -5,5 +5,16 @@
         "retry": "Reintentar",
         "failed": "Error al cargar la descripción.",
         "footer": "Comparación de Modelos IA • 2025"
+    },
+    "Navigation": {
+        "home": "Inicio",
+        "about": "Sobre Mí"
+    },
+    "About": {
+        "title": "Sobre Mí",
+        "name": "Wilmer Leon",
+        "bio": "Escribo sobre IA y construyo cosas geniales.",
+        "blog": "Lee mi blog en Medium",
+        "linkedin": "Conecta en LinkedIn"
     }
 }
