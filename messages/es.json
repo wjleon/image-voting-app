@@ -1,0 +1,9 @@
+{
+    "Voting": {
+        "title": "Dada la siguiente descripción, ¿qué imagen te gusta más?",
+        "thanks": "¡Gracias por votar! Cargando siguiente...",
+        "retry": "Reintentar",
+        "failed": "Error al cargar la descripción.",
+        "footer": "Comparación de Modelos IA • 2025"
+    }
+}

@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, use } from 'react';
 import Image from 'next/image';
 import { Loader2, CheckCircle } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
+import { useTranslations } from 'next-intl';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 // Types
 interface Candidate {
@@ -19,14 +21,16 @@ interface PromptData {
   candidates: Candidate[];
 }
 
-export default function VotingPage() {
+export default function VotingPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = use(params);
+  const t = useTranslations('Voting');
   const [promptData, setPromptData] = useState<PromptData | null>(null);
   const [loading, setLoading] = useState(true);
   const [voting, setVoting] = useState(false);
   const [voted, setVoted] = useState(false);
   const [sessionId, setSessionId] = useState('');
 
-  // Initialize Session ID
+  // Initialize Session ID and fetch prompt
   useEffect(() => {
     let sid = localStorage.getItem('voting_session_id');
     if (!sid) {
@@ -35,13 +39,13 @@ export default function VotingPage() {
     }
     setSessionId(sid);
     fetchPrompt();
-  }, []);
+  }, [locale]);
 
   const fetchPrompt = async () => {
     setLoading(true);
     setVoted(false);
     try {
-      const res = await fetch('/api/prompts/random', { cache: 'no-store' });
+      const res = await fetch(`/api/prompts/random?locale=${locale}`, { cache: 'no-store' });
       if (!res.ok) throw new Error('Failed to fetch prompt');
       const data = await res.json();
       setPromptData(data);
@@ -95,16 +99,18 @@ export default function VotingPage() {
   if (!promptData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white">
-        <p>Failed to load prompt. <button onClick={fetchPrompt} className="underline">Retry</button></p>
+        <p>{t('failed')} <button onClick={fetchPrompt} className="underline">{t('retry')}</button></p>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center py-8 px-4">
+    <main className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center py-8 px-4 relative">
+      <LanguageSwitcher />
+
       <header className="mb-8 text-center max-w-5xl">
         <h1 className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-          Given the following prompt, which image do you like the most?
+          {t('title')}
         </h1>
         <p className="text-lg text-zinc-300 leading-relaxed bg-zinc-900/50 p-4 rounded-xl border border-zinc-800 font-['Courier_New']">
           {promptData.promptText}
@@ -147,12 +153,12 @@ export default function VotingPage() {
       {voted && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-green-500/90 text-white px-6 py-3 rounded-full shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-4">
           <CheckCircle className="w-5 h-5" />
-          <span className="font-medium">Thanks for voting! Loading next...</span>
+          <span className="font-medium">{t('thanks')}</span>
         </div>
       )}
 
       <footer className="mt-12 text-zinc-500 text-sm">
-        AI Model Comparison • 2025
+        {t('footer')}
       </footer>
     </main>
   );

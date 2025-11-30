@@ -24,7 +24,7 @@ function sanitizeSlug(name: string): string {
 
 async function main() {
   console.log('Starting ingestion...');
-  
+
   if (!fs.existsSync(SOURCE_DIR)) {
     console.error(`Source directory not found: ${SOURCE_DIR}`);
     process.exit(1);
@@ -39,7 +39,7 @@ async function main() {
   for (const folder of challengeFolders) {
     const folderPath = path.join(SOURCE_DIR, folder);
     const promptFilePath = path.join(folderPath, '_prompt.txt');
-    
+
     if (!fs.existsSync(promptFilePath)) {
       console.warn(`Skipping ${folder}: _prompt.txt not found.`);
       continue;
@@ -58,7 +58,51 @@ async function main() {
       },
     });
 
-    console.log(`Processed Prompt: ${slug}`);
+    // Create Translations
+    // English (Source)
+    await prisma.promptTranslation.upsert({
+      where: {
+        promptId_language: {
+          promptId: prompt.id,
+          language: 'en',
+        },
+      },
+      update: { text: promptText },
+      create: {
+        promptId: prompt.id,
+        language: 'en',
+        text: promptText,
+      },
+    });
+
+    // Spanish Translation
+    let spanishText = `[ES] ${promptText}`;
+    try {
+      // Dynamic import for ESM module
+      const { translate } = await import('@vitalets/google-translate-api');
+      const res = await translate(promptText, { to: 'es' });
+      spanishText = res.text;
+    } catch (error) {
+      console.warn(`Translation failed for ${slug}:`, error);
+      // Fallback to mock if translation fails
+    }
+
+    await prisma.promptTranslation.upsert({
+      where: {
+        promptId_language: {
+          promptId: prompt.id,
+          language: 'es',
+        },
+      },
+      update: { text: spanishText },
+      create: {
+        promptId: prompt.id,
+        language: 'es',
+        text: spanishText,
+      },
+    });
+
+    console.log(`Processed Prompt: ${slug} (with EN/ES translations)`);
 
     // Process Model Subfolders
     const modelFolders = fs.readdirSync(folderPath).filter(f => {
@@ -68,7 +112,7 @@ async function main() {
     for (const modelFolder of modelFolders) {
       const modelPath = path.join(folderPath, modelFolder);
       const normalizedModelName = normalizeModelName(modelFolder);
-      
+
       // Target directory in public/images
       const targetDir = path.join(PUBLIC_IMAGES_DIR, slug, normalizedModelName);
       fs.mkdirSync(targetDir, { recursive: true });

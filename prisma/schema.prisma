@@ -16,8 +16,21 @@ model Prompt {
   impressions ImageImpression[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  translations PromptTranslation[]
 
   @@map("prompts")
+}
+
+model PromptTranslation {
+  id        String   @id @default(uuid())
+  promptId  String   @map("prompt_id")
+  language  String   // 'en', 'es', etc.
+  text      String
+  
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  
+  @@unique([promptId, language])
+  @@map("prompt_translations")
 }
 
 model Image {

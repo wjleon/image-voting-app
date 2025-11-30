@@ -1,0 +1,9 @@
+{
+  "Voting": {
+    "title": "Given the following prompt, which image do you like the most?",
+    "thanks": "Thanks for voting! Loading next...",
+    "retry": "Retry",
+    "failed": "Failed to load prompt.",
+    "footer": "AI Model Comparison • 2025"
+  }
+}

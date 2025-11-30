@@ -1,41 +1,43 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 export const dynamic = 'force-dynamic'; // Ensure no caching for random selection
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
+        const searchParams = request.nextUrl.searchParams;
+        const locale = searchParams.get('locale') || 'en';
+
         // 1. Get a random prompt
-        // For better performance on large datasets, we might want to use a raw query or count first.
-        // For now, fetching all IDs and picking one is fine for < 100 prompts.
-        const prompts = await prisma.prompt.findMany({
-            select: { id: true },
-        });
+        const promptCount = await prisma.prompt.count();
+        const skip = Math.floor(Math.random() * promptCount);
 
-        if (prompts.length === 0) {
-            return NextResponse.json({ error: 'No prompts found' }, { status: 404 });
-        }
-
-        const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
-
-        // 2. Fetch prompt details and images
-        const prompt = await prisma.prompt.findUnique({
-            where: { id: randomPrompt.id },
+        const randomPrompts = await prisma.prompt.findMany({
+            take: 1,
+            skip: skip,
             include: {
                 images: true,
+                translations: {
+                    where: { language: locale },
+                    take: 1,
+                },
             },
         });
 
-        if (!prompt || prompt.images.length === 0) {
-            return NextResponse.json({ error: 'Prompt has no images' }, { status: 404 });
+        if (randomPrompts.length === 0) {
+            return NextResponse.json({ error: 'No prompts found' }, { status: 404 });
         }
 
-        // 3. Fairness Algorithm: Select 4 distinct models with lowest impression counts
+        const prompt = randomPrompts[0];
 
-        // Group images by model to ensure we pick distinct models
+        // Use translated text if available, otherwise fallback to default text
+        const promptText = prompt.translations[0]?.text || prompt.text;
+
+        // 2. Select 4 candidates using fairness algorithm (least viewed)
         const imagesByModel: Record<string, typeof prompt.images> = {};
+
         for (const img of prompt.images) {
             if (!imagesByModel[img.modelName]) {
                 imagesByModel[img.modelName] = [];
@@ -43,83 +45,52 @@ export async function GET() {
             imagesByModel[img.modelName].push(img);
         }
 
-        const modelNames = Object.keys(imagesByModel);
+        const modelCandidates: { modelName: string; image: typeof prompt.images[0] }[] = [];
 
-        if (modelNames.length < 4) {
-            // Fallback if fewer than 4 models exist (though unlikely based on data)
-            // We'll just return what we have, or duplicate? 
-            // PRD implies 4 distinct models. If not possible, return error or all.
-            // Let's return what we have but log a warning.
-            console.warn(`Prompt ${prompt.slug} has fewer than 4 models.`);
+        for (const modelName in imagesByModel) {
+            // Sort images for this model by impressionCount ASC
+            const sortedImages = imagesByModel[modelName].sort((a, b) => a.impressionCount - b.impressionCount);
+            // Pick the best one (least viewed)
+            modelCandidates.push({
+                modelName,
+                image: sortedImages[0],
+            });
         }
 
-        // Calculate average impression count per model to sort
-        // Actually, we want to pick a specific image for the model too?
-        // PRD says: "For each model/image, read its impression_count. Select the 4 models/images with the lowest impression counts."
-        // If a model has multiple images, we should probably pick the one with lowest impressions for that model first?
-        // Or just treat all images as candidates and pick top 4 distinct models?
-
-        // Strategy:
-        // 1. For each model, find the image with the lowest impression count.
-        // 2. Sort these "best representative" images by impression count ASC.
-        // 3. Take top 4.
-
-        const candidateImages = [];
-
-        for (const model of modelNames) {
-            const modelImages = imagesByModel[model];
-            // Sort images for this model by impression count ASC
-            modelImages.sort((a, b) => a.impressionCount - b.impressionCount);
-
-            // Pick the first one (lowest impressions)
-            // We could also randomize if ties, but sort is stable enough or we can shuffle ties.
-            // Let's pick random among ties for better distribution?
-            // Simple approach: just take the first one after sort.
-            candidateImages.push(modelImages[0]);
-        }
-
-        // Now sort candidates by their impression count to find the globally least viewed models
-        candidateImages.sort((a, b) => a.impressionCount - b.impressionCount);
+        // Sort models by their candidate's impressionCount ASC to prioritize under-exposed models
+        modelCandidates.sort((a, b) => a.image.impressionCount - b.image.impressionCount);
 
         // Take top 4
-        // If ties at the 4th position, we should randomize to avoid bias?
-        // For simplicity, we take top 4.
-        const selectedImages = candidateImages.slice(0, 4);
+        const selectedCandidates = modelCandidates.slice(0, 4);
 
-        // Shuffle the selected images for display position
-        const shuffledImages = selectedImages.sort(() => Math.random() - 0.5);
+        // Shuffle them so they don't always appear in the same order
+        for (let i = selectedCandidates.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [selectedCandidates[i], selectedCandidates[j]] = [selectedCandidates[j], selectedCandidates[i]];
+        }
 
-        // 4. Increment impression counts (Fire and forget, or await?)
-        // Await to ensure consistency, or use after() in Next.js 15 (experimental/stable?)
-        // We'll await for now to be safe.
-        await prisma.$transaction(
-            selectedImages.map(img =>
-                prisma.image.update({
-                    where: { id: img.id },
-                    data: { impressionCount: { increment: 1 } }
-                })
-            )
+        // 3. Record Impressions
+        const impressionPromises = selectedCandidates.map(c =>
+            prisma.image.update({
+                where: { id: c.image.id },
+                data: { impressionCount: { increment: 1 } }
+            })
         );
+        await Promise.all(impressionPromises);
 
-        // Also log to ImageImpression table if needed? PRD says "and/or".
-        // We'll skip ImageImpression table for now to save writes, unless requested.
-        // PRD: "Insert 4 rows in image_impressions (optional)" -> We'll stick to count for now.
-
-        return NextResponse.json({
+        // 4. Construct Response
+        const response = {
             promptId: prompt.id,
-            promptText: prompt.text,
+            promptText: promptText,
             slug: prompt.slug,
-            candidates: shuffledImages.map(img => ({
-                imageId: img.id,
-                modelName: img.modelName, // Note: PRD says "Model names must not be shown to voters", but frontend needs it for debugging or hidden field?
-                // Actually frontend needs to send it back on vote.
-                // We should probably NOT send modelName if we want to be secure, but we need it for the vote.
-                // We can encrypt it or just send it and trust the client not to show it.
-                // PRD: "Image names must be anonymized... UI should not show model names".
-                // It doesn't say we can't send it in JSON.
-                imageUrl: img.imagePath,
-            }))
-        });
+            candidates: selectedCandidates.map(c => ({
+                imageId: c.image.id,
+                modelName: c.modelName,
+                imageUrl: c.image.imagePath,
+            })),
+        };
+
+        return NextResponse.json(response);
 
     } catch (error) {
         console.error('Error fetching prompt:', error);
