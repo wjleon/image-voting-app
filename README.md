@@ -7,17 +7,20 @@ A modern web application designed to blindly compare and vote on images generate
 -   **Blind Voting**: Users see images without knowing which model generated them.
 -   **Fairness Algorithm**: The system prioritizes showing images with the fewest impressions to ensure equal exposure.
 -   **Internationalization (i18n)**: Full support for **English** and **Spanish**, including automatic prompt translation.
--   **Admin Dashboard**: View aggregated statistics, win rates, and total votes per model.
+-   **Admin Dashboard**: A protected route (`/admin`) displays statistics on model performance (Win Rate, Total Votes, Impressions).
+    -   **Secure Access**: Password-protected via HTTP Basic Auth.
+-   **Internationalization (i18n)**: Full support for **English** and **Spanish**.
+    -   **High-Quality Translations**: Prompts are translated using OpenAI (GPT-3.5/4) for accuracy.
 -   **About Page**: Profile page with links to social media and blog.
 -   **Responsive Design**: Built with Tailwind CSS for a seamless experience on mobile and desktop.
 
 ## 🛠️ Tech Stack
 
 -   **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
--   **Database**: SQLite (via [Prisma ORM](https://www.prisma.io/))
+-   **Database**: PostgreSQL (via [Prisma ORM](https://www.prisma.io/)) - *Migrated from SQLite for Vercel*
 -   **Styling**: Tailwind CSS
 -   **Internationalization**: `next-intl`
--   **Translation**: `google-translate-api`
+-   **Translation**: `openai` (GPT-3.5 Turbo)
 -   **Icons**: `lucide-react`
 
 ## 📦 Installation & Setup
@@ -68,6 +71,18 @@ A modern web application designed to blindly compare and vote on images generate
 To add new images, place them in the `images/` folder following the structure described in [ADDING_IMAGES.md](./ADDING_IMAGES.md), then run:
 ```bash
 npx tsx scripts/ingest.ts
+```
+
+### Translate Prompts (OpenAI)
+To batch translate all prompts to Spanish using OpenAI (requires `OPENAI_API_KEY`):
+```bash
+npx tsx scripts/translate-openai.ts
+```
+
+### Check Translations
+To verify that all prompts have valid Spanish translations:
+```bash
+npx tsx scripts/check-translations.ts
 ```
 
 ### Reset Votes

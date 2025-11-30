@@ -31,11 +31,12 @@ This guide will walk you through deploying this app to Vercel.
     *   Once created, go to the **".env.local"** tab in the database page.
     *   Click **"Show Secret"**.
     *   Copy the value of `POSTGRES_PRISMA_URL`.
-4.  **Add Environment Variable**:
+4.  **Add Environment Variables**:
     *   Go to your project **"Settings"** > **"Environment Variables"**.
-    *   Add a new variable:
-        *   **Key**: `DATABASE_URL`
-        *   **Value**: (Paste the `POSTGRES_PRISMA_URL` you copied).
+    *   Add the following variables:
+        *   `DATABASE_URL`: (Paste the `POSTGRES_PRISMA_URL` you copied).
+        *   `ADMIN_PASSWORD`: Set a secure password for the admin dashboard.
+        *   `OPENAI_API_KEY`: (Optional) Required if you plan to run translation scripts in production, though usually you run them locally.
     *   Click **"Save"**.
 
 ## Phase 3: Update Code for Postgres
@@ -80,6 +81,13 @@ Your production database is currently empty. You need to run the ingestion scrip
         ```
     *   This will read your local `images/` folder and upload the data (prompts, translations, image paths) to the Vercel database.
     *   *Note: The actual image files are deployed with your code to Vercel, so the paths will work.*
+
+4.  **Run Translations (Optional)**:
+    *   If you want high-quality Spanish translations, run:
+        ```bash
+        npx tsx scripts/translate-openai.ts
+        ```
+    *   This requires `OPENAI_API_KEY` to be set in your local `.env`.
 
 ## Phase 5: Verify
 

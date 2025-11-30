@@ -24,6 +24,7 @@ images/
 2.  **Prompt File**: Inside the slug folder, create a file named `_prompt.txt`. Paste the full text of the prompt into this file.
 3.  **Model Folders**: Create subfolders for each AI model (e.g., `Midjourney`, `ChatGPT`, `Flux`). The folder name will be used as the model name.
 4.  **Images**: Place the generated image(s) inside the corresponding model folder. Supported formats: `.png`, `.jpg`, `.jpeg`, `.webp`.
+5.  **Minimum Quantity**: You must have at least **4 different models** (and thus 4 images) for the voting to work correctly.
 
 ## 2. Run the Ingestion Script
 Once your folders are set up, run the ingestion script to process the images, generate translations, and update the database.
@@ -40,6 +41,15 @@ npx tsx scripts/ingest.ts
 -   **Translates** the prompt to Spanish automatically (using Google Translate).
 -   **Copies** images to the public web folder (`public/images`).
 -   **Updates** the database with the new prompt, translations, and image paths.
+
+### Better Translations (Recommended)
+The ingestion script uses a basic translation service. For high-quality Spanish translations using OpenAI:
+
+1.  Ensure `OPENAI_API_KEY` is in your `.env` file.
+2.  Run:
+    ```bash
+    npx tsx scripts/translate-openai.ts
+    ```
 
 ## 3. Verify
 Start the application (if not already running):
