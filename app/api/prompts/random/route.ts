@@ -10,13 +10,27 @@ export async function GET(request: NextRequest) {
         const searchParams = request.nextUrl.searchParams;
         const locale = searchParams.get('locale') || 'en';
 
-        // 1. Get a random prompt
-        const promptCount = await prisma.prompt.count();
-        const skip = Math.floor(Math.random() * promptCount);
+        // 1. Get all valid prompt IDs (those with at least 4 images to ensure a full vote)
+        const validPrompts = await prisma.prompt.findMany({
+            where: {
+                images: {
+                    some: {} // Ensure at least one image exists
+                }
+            },
+            select: { id: true },
+        });
+
+        if (validPrompts.length === 0) {
+            return NextResponse.json({ error: 'No valid prompts found' }, { status: 404 });
+        }
+
+        // Pick a random ID
+        const randomIndex = Math.floor(Math.random() * validPrompts.length);
+        const randomPromptId = validPrompts[randomIndex].id;
 
         const randomPrompts = await prisma.prompt.findMany({
+            where: { id: randomPromptId },
             take: 1,
-            skip: skip,
             include: {
                 images: true,
                 translations: {
@@ -27,7 +41,7 @@ export async function GET(request: NextRequest) {
         });
 
         if (randomPrompts.length === 0) {
-            return NextResponse.json({ error: 'No prompts found' }, { status: 404 });
+            return NextResponse.json({ error: 'Prompt not found' }, { status: 404 });
         }
 
         const prompt = randomPrompts[0];
