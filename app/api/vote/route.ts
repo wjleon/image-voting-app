@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
         const parser = new UAParser(userAgentString);
         const uaResult = parser.getResult();
 
-        const ip = request.headers.get('x-forwarded-for') || request.ip || 'unknown';
+        const ip = request.headers.get('x-forwarded-for') || 'unknown';
         const country = request.headers.get('x-vercel-ip-country') || null;
         const region = request.headers.get('x-vercel-ip-city') || null;
 

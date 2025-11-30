@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { Link } from '@/src/i18n/routing';
 import { Linkedin, BookOpen } from 'lucide-react';
 
 export default function AboutPage() {
