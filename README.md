@@ -67,17 +67,15 @@ A modern web application designed to blindly compare and vote on images generate
 
 ## 📜 Scripts
 
-### Add New Images
-To add new images, place them in the `images/` folder following the structure described in [ADDING_IMAGES.md](./ADDING_IMAGES.md), then run:
+### Add New Images (Sync)
+To ingest new images and automatically translate prompts (using OpenAI if configured):
 ```bash
-npx tsx scripts/ingest.ts
+npm run sync
 ```
+This runs both the ingestion and translation scripts in one go.
 
-### Translate Prompts (OpenAI)
-To batch translate all prompts to Spanish using OpenAI (requires `OPENAI_API_KEY`):
-```bash
-npx tsx scripts/translate-openai.ts
-```
+### Check Translations
+To verify that all prompts have valid Spanish translations:
 
 ### Check Translations
 To verify that all prompts have valid Spanish translations:

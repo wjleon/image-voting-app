@@ -26,30 +26,21 @@ images/
 4.  **Images**: Place the generated image(s) inside the corresponding model folder. Supported formats: `.png`, `.jpg`, `.jpeg`, `.webp`.
 5.  **Minimum Quantity**: You must have at least **4 different models** (and thus 4 images) for the voting to work correctly.
 
-## 2. Run the Ingestion Script
-Once your folders are set up, run the ingestion script to process the images, generate translations, and update the database.
-
-Open your terminal in the `image-voting-app` directory and run:
+## 2. Run the Sync Script
+Once your folders are set up, run the **sync script**. This single command will:
+1.  Ingest new images and prompts.
+2.  Automatically translate prompts using OpenAI (if configured).
 
 ```bash
-npx tsx scripts/ingest.ts
+npm run sync
 ```
 
-### What the script does:
--   **Scans** the `images` directory for new folders.
--   **Reads** the `_prompt.txt` file.
--   **Translates** the prompt to Spanish automatically (using Google Translate).
--   **Copies** images to the public web folder (`public/images`).
--   **Updates** the database with the new prompt, translations, and image paths.
+### What this does:
+-   **Scans** the `images` directory.
+-   **Updates** the database.
+-   **Translates** everything to Spanish using OpenAI (requires `OPENAI_API_KEY`).
 
-### Better Translations (Recommended)
-The ingestion script uses a basic translation service. For high-quality Spanish translations using OpenAI:
-
-1.  Ensure `OPENAI_API_KEY` is in your `.env` file.
-2.  Run:
-    ```bash
-    npx tsx scripts/translate-openai.ts
-    ```
+> **Note**: If you don't have an OpenAI key, it will skip the high-quality translation step and stick with the basic one.
 
 ## 3. Verify
 Start the application (if not already running):
