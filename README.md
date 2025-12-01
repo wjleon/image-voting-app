@@ -95,6 +95,15 @@ To wipe the **entire database** (including images and prompts):
 npx tsx scripts/reset.ts
 ```
 
+## 📚 Documentation
+
+Detailed guides and specifications for this project:
+
+-   **[Adding Images](./ADDING_IMAGES.md)**: Guide on how to add new prompts and images.
+-   **[Deployment Guide](./DEPLOYMENT.md)**: Step-by-step instructions for deploying to Vercel with Postgres.
+-   **[Internationalization PRD](./docs/i18n_PRD.md)**: Product requirements and specs for the i18n implementation.
+-   **[Navigation & About PRD](./docs/navigation_about_PRD.md)**: Product requirements for the navigation bar and About page.
+
 ## 🔗 Useful Links
 
 -   **Home**: `http://localhost:3000`
